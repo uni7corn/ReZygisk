@@ -155,10 +155,10 @@ async function getModuleNames(modules) {
     default: monitor_status.innerHTML = translations.page.actions.status.unknown;
   }
 
-  const expectedWorking = (ReZygiskState.zygote['64'] !== undefined ? 1 : 0) + (ReZygiskState.zygote['32'] !== undefined ? 1 : 0)
+  const expectedWorking = ReZygiskState.zygote === undefined ? 0 : (ReZygiskState.zygote['64'] !== undefined ? 1 : 0) + (ReZygiskState.zygote['32'] !== undefined ? 1 : 0)
   let actuallyWorking = 0
 
-  if (ReZygiskState.zygote['64'] !== undefined) {
+  if (ReZygiskState.zygote && ReZygiskState.zygote['64'] !== undefined) {
     const zygote64 = ReZygiskState.zygote['64']
 
     zygote_divs[0].style.display = 'block'
@@ -176,7 +176,9 @@ async function getModuleNames(modules) {
     }
   }
 
-  if (ReZygiskState.zygote['32'] !== undefined) {
+  toast('ok')
+
+  if (ReZygiskState.zygote && ReZygiskState.zygote['32'] !== undefined) {
     const zygote32 = ReZygiskState.zygote['32']
 
     zygote_divs[1].style.display = 'block'
@@ -209,7 +211,7 @@ async function getModuleNames(modules) {
   }
 
   const all_modules = []
-  Object.keys(ReZygiskState.rezygiskd).forEach((daemon_bit) => {
+  if (ReZygiskState.rezygiskd) Object.keys(ReZygiskState.rezygiskd).forEach((daemon_bit) => {
     const daemon = ReZygiskState.rezygiskd[daemon_bit]
 
     if (daemon.modules && daemon.modules.length > 0) {
@@ -249,7 +251,15 @@ async function getModuleNames(modules) {
           </div>
         </div>`
     })
-  
+  }
+
+  if (ReZygiskState.zygote === undefined) {
+    /* INFO: Use Zygote 64-bit as reference since both are missing */
+    zygote_divs[0].style.display = 'block'
+    zygote_status_divs[0].innerHTML = translations.page.home.info.zygote.unknown
+
+    const zygote64_name_div = document.getElementById('zygote64_name')
+    zygote64_name_div.innerHTML = ''
   }
 
   /* INFO: This hides the throbber screen */
